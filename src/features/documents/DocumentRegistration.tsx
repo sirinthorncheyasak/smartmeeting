@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { createDocumentTransaction, getBuddhistPeriodInfo } from "../../services/documentService";
 import { auth, db } from "../../firebase";
 import { doc, onSnapshot } from "firebase/firestore";
-import { FilePlus2, PlaySquare, ArrowDownLeft, ArrowUpRight, HelpCircle, Copy, Check } from "lucide-react";
+import { FilePlus2, Save, ArrowDownLeft, ArrowUpRight, HelpCircle, Copy, Check } from "lucide-react";
 
 interface DocumentRegistrationProps {
   onSuccess: () => void;
@@ -303,7 +303,7 @@ export default function DocumentRegistration({ onSuccess }: DocumentRegistration
               </>
             ) : (
               <>
-                <PlaySquare className="w-4 h-4" />
+                <Save className="w-4 h-4" />
                 {type === "outbound" ? "บันทึกเอกสารส่งออก (Save Outbound Memo)" : "บันทึกเอกสารรับเข้า (Save Inbound Memo)"}
               </>
             )}

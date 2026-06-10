@@ -356,7 +356,7 @@ export default function DocumentTable({ documents, auditLogs, isAdmin, onRefresh
                 <th className="p-4 text-[10px] font-extrabold uppercase tracking-widest">Registrant</th>
                 <th className="p-4 text-[10px] font-extrabold uppercase tracking-widest">Submission Date</th>
                 <th className="p-4 text-[10px] font-extrabold uppercase tracking-widest">Status</th>
-                <th className="p-4 text-[10px] font-extrabold uppercase tracking-widest text-center">Details</th>
+                <th className="p-4 text-[10px] font-extrabold uppercase tracking-widest text-center">{isAdmin ? "Manage / Edit" : "Details"}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -433,7 +433,7 @@ export default function DocumentTable({ documents, auditLogs, isAdmin, onRefresh
                       )}
                     </td>
 
-                    {/* Quick View Button */}
+                    {/* Quick View or Edit Button */}
                     <td className="p-4 text-center">
                       <button
                         onClick={() => {
@@ -442,9 +442,14 @@ export default function DocumentTable({ documents, auditLogs, isAdmin, onRefresh
                           setRejectionTextInput("");
                           setModalError("");
                         }}
-                        className="p-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 hover:text-indigo-800 rounded-xl transition-colors cursor-pointer"
+                        className={`p-2 rounded-xl transition-colors cursor-pointer ${
+                          isAdmin 
+                            ? "bg-indigo-50 hover:bg-indigo-100 text-indigo-700 hover:text-indigo-800"
+                            : "bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-800"
+                        }`}
+                        title={isAdmin ? "แก้ไข / จัดการข้อมูล (Edit / Manage)" : "ดูรายละเอียด (View Details)"}
                       >
-                        <Eye className="w-4 h-4" />
+                        {isAdmin ? <Edit className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </td>
 
