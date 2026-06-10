@@ -1,0 +1,68 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Guard functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == "kulachet.l@bu.ac.th" ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Admins Collection
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Bookings Collection
+    match /bookings/{bookingId} {
+      allow read: if isSignedIn();
+      
+      // Allow creation if verified user and the request email matches their auth email
+      allow create: if isVerifiedUser() && isValidId(bookingId) && request.resource.data.requesterEmail == request.auth.token.email;
+      
+      // Admins can update any field. Staff can cancel their own bookings.
+      allow update: if isVerifiedUser() && (
+        isAdmin() || (
+          resource.data.requesterEmail == request.auth.token.email &&
+          request.resource.data.status == "cancelled" &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status", "updatedAt", "cancelledReason"])
+        )
+      );
+      
+      allow delete: if isAdmin();
+    }
+
+    // Staff Collection
+    match /staff/{staffId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Rooms Collection
+    match /rooms/{roomId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+  }
+}
