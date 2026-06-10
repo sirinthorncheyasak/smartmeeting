@@ -49,8 +49,8 @@ export default function App() {
   const [isSimulatedAdmin, setIsSimulatedAdmin] = useState(false);
 
   // Authentication & Admin logic
-  const isAdmin = user?.email === "kulachet.l@bu.ac.th" || isAdminUser || isSimulatedAdmin;
-  const isRealAdmin = user?.email === "kulachet.l@bu.ac.th" || isAdminUser;
+  const isAdmin = user?.email === "kulachet.l@bu.ac.th" || user?.email === "sirinthorn.c@bu.ac.th" || isAdminUser || isSimulatedAdmin;
+  const isRealAdmin = user?.email === "kulachet.l@bu.ac.th" || user?.email === "sirinthorn.c@bu.ac.th" || isAdminUser;
 
   // 1. Auth state listener
   useEffect(() => {
@@ -60,7 +60,7 @@ export default function App() {
       setAuthLoading(false);
       
       // Auto-simulate admin for standard developer convenience if requested email matches
-      if (firebaseUser?.email === "kulachet.l@bu.ac.th") {
+      if (firebaseUser?.email === "kulachet.l@bu.ac.th" || firebaseUser?.email === "sirinthorn.c@bu.ac.th") {
         setIsSimulatedAdmin(true);
       } else {
         setIsSimulatedAdmin(false);
@@ -76,7 +76,7 @@ export default function App() {
       return;
     }
 
-    if (user.email === "kulachet.l@bu.ac.th") {
+    if (user.email === "kulachet.l@bu.ac.th" || user.email === "sirinthorn.c@bu.ac.th") {
       setIsAdminUser(true);
       return;
     }

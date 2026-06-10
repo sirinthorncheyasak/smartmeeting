@@ -41,12 +41,12 @@ export const db = getFirestore(app, databaseId || undefined);
 export const loginWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
-    const email = result.user?.email || "";
+    const email = result.user?.email?.toLowerCase() || "";
     
-    // Validate domain
-    if (!email.endsWith("@bu.ac.th") && email !== "kulachet.l@bu.ac.th") {
+    // Strict domain checking for BU professors and staff
+    if (!email.endsWith("@bu.ac.th")) {
       await signOut(auth);
-      throw new Error("Access Denied: This application is available only for BU accounts.");
+      throw new Error("Access Denied: This application is restricted to Bangkok University @bu.ac.th accounts only.");
     }
     
     return result.user;

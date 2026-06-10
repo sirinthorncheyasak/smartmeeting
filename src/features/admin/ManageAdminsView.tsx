@@ -57,8 +57,8 @@ export default function ManageAdminsView() {
       return;
     }
 
-    if (!emailToRegister.endsWith("@bu.ac.th") && emailToRegister !== "kulachet.l@bu.ac.th") {
-      setError("Only Bangkok University emails (@bu.ac.th) are permitted for system administration.");
+    if (!emailToRegister.includes("@") || !emailToRegister.includes(".")) {
+      setError("Please specify a valid email address.");
       return;
     }
 
@@ -177,13 +177,13 @@ export default function ManageAdminsView() {
           <form onSubmit={handleAddAdmin} className="space-y-4">
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                BU Email Address
+                Administrator Email Address
               </label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
                 <input
                   type="email"
-                  placeholder="e.g. sirinthorn.c@bu.ac.th"
+                  placeholder="e.g. general-user@gmail.com"
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50/50"
@@ -191,7 +191,7 @@ export default function ManageAdminsView() {
                 />
               </div>
               <p className="text-[10px] text-slate-400 mt-1.5 leading-normal">
-                Must be an active Bangkok University credential email domain (<strong className="text-slate-600 font-semibold">@bu.ac.th</strong>).
+                Specify any valid email address to grant authorized administrative permissions.
               </p>
             </div>
 

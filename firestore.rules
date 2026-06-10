@@ -17,13 +17,15 @@ service cloud.firestore {
     function isBU() {
       return isSignedIn() && (
         request.auth.token.email.lower().endsWith("@bu.ac.th") ||
-        request.auth.token.email.lower() == "kulachet.l@bu.ac.th"
+        request.auth.token.email.lower() == "kulachet.l@bu.ac.th" ||
+        request.auth.token.email.lower() == "sirinthorn.c@bu.ac.th"
       );
     }
 
     function isAdmin() {
       return isSignedIn() && (
         request.auth.token.email.lower() == "kulachet.l@bu.ac.th" ||
+        request.auth.token.email.lower() == "sirinthorn.c@bu.ac.th" ||
         exists(/databases/$(database)/documents/admins/$(request.auth.token.email.lower()))
       );
     }
@@ -38,7 +40,6 @@ service cloud.firestore {
 
     function isValidAdmin(data) {
       return data.email is string 
-        && (data.email.lower().endsWith("@bu.ac.th") || data.email.lower() == "kulachet.l@bu.ac.th")
         && data.assignedBy is string
         && data.assignedBy.size() <= 200
         && data.assignedAt is timestamp;
@@ -141,7 +142,7 @@ service cloud.firestore {
         && isValidEmailId(email) 
         && isValidAdmin(incoming())
         && (email.lower() == incoming().get('email', '').lower());
-      allow delete: if isAdmin() && email.lower() != "kulachet.l@bu.ac.th";
+      allow delete: if isAdmin() && email.lower() != "kulachet.l@bu.ac.th" && email.lower() != "sirinthorn.c@bu.ac.th";
     }
   }
 }

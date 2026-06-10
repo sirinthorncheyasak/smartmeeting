@@ -35,17 +35,17 @@ export default function Header({
       
       {/* Brand logotype */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-200/50">
-          ท
+        <div className="w-10 h-10 rounded-2xl bg-indigo-650 flex items-center justify-center text-white font-extrabold text-[12px] shadow-lg shadow-indigo-100">
+          ITI
         </div>
         <div>
           <h1 className="text-base font-extrabold tracking-tight text-slate-900 flex items-center gap-1.5 font-display">
-            BU Document Tracker
-            <span className="text-[10px] font-bold px-2 py-0.5 bg-indigo-500/10 text-indigo-700 rounded-full">
+            ITI In/Out Bound Memo Tracker
+            <span className="text-[10px] font-bold px-2 py-0.5 bg-indigo-505/10 text-indigo-700 rounded-full">
               v2.0 (Production)
             </span>
           </h1>
-          <p className="text-[11px] text-slate-505 font-extrabold tracking-wider uppercase">บันทึกรับเข้า-ส่งออกเอกสาร</p>
+          <p className="text-[11px] text-slate-500 font-extrabold tracking-wider uppercase">บันทึกรับเข้า-ส่งออกเอกสาร</p>
         </div>
       </div>
 

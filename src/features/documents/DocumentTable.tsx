@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { Document, AuditLog } from "../../types";
 import { auth } from "../../firebase";
-import { approveDocument, rejectDocument } from "../../services/documentService";
+import { approveDocument, rejectDocument, updateDocumentDetails, deleteDocument } from "../../services/documentService";
 import { 
   Search, 
   Filter, 
@@ -19,7 +19,10 @@ import {
   AlertTriangle,
   Send,
   User,
-  History
+  History,
+  Edit,
+  Trash2,
+  Download
 } from "lucide-react";
 
 interface DocumentTableProps {
@@ -45,6 +48,11 @@ export default function DocumentTable({ documents, auditLogs, isAdmin, onRefresh
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [modalActionLoading, setModalActionLoading] = useState(false);
   const [modalError, setModalError] = useState("");
+
+  // Editing state for admin
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
 
   // Process and Filter records
   const filteredDocs = useMemo(() => {
@@ -150,6 +158,100 @@ export default function DocumentTable({ documents, auditLogs, isAdmin, onRefresh
     }
   };
 
+  const handleSaveEdit = async () => {
+    if (!selectedDoc) return;
+    if (!editTitle.trim()) {
+      setModalError("Please enter a valid document title.");
+      return;
+    }
+
+    const adminEmail = auth.currentUser?.email || "sirinthorn.c@bu.ac.th";
+    setModalActionLoading(true);
+    setModalError("");
+    try {
+      await updateDocumentDetails(selectedDoc.id, editTitle, editDescription, adminEmail);
+      
+      // Update selected doc locally
+      const updated = {
+        ...selectedDoc,
+        title: editTitle.trim(),
+        description: editDescription.trim(),
+      };
+      setSelectedDoc(updated);
+      setIsEditing(false);
+      onRefreshNeeded();
+    } catch (err: any) {
+      setModalError(err.message || "Failed to update document details.");
+    } finally {
+      setModalActionLoading(false);
+    }
+  };
+
+  const handleDeleteDocument = async () => {
+    if (!selectedDoc) return;
+    if (!window.confirm("Are you absolutely sure you want to permanently delete this document? This action is IRREVERSIBLE and will write a secure audit log.")) {
+      return;
+    }
+
+    const adminEmail = auth.currentUser?.email || "sirinthorn.c@bu.ac.th";
+    setModalActionLoading(true);
+    setModalError("");
+    try {
+      await deleteDocument(selectedDoc.id, adminEmail);
+      setSelectedDoc(null);
+      setIsEditing(false);
+      onRefreshNeeded();
+    } catch (err: any) {
+      setModalError(err.message || "Failed to delete document.");
+    } finally {
+      setModalActionLoading(false);
+    }
+  };
+
+  const handleDownloadCSV = () => {
+    // Only outbound documents
+    const outboundDocs = documents.filter(d => d.type === "outbound");
+    if (outboundDocs.length === 0) {
+      alert("No outbound documents available to export.");
+      return;
+    }
+
+    // Define columns
+    const headers = ["Document ID", "Outbound Ref ID", "Title", "Description", "Registrant Name", "Registrant Email", "Submission Date", "Status"];
+    
+    // Map data rows
+    const rows = outboundDocs.map(docItem => {
+      const ts = docItem.createdAt;
+      const dateStr = ts 
+        ? (ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts)).toISOString()
+        : "";
+      return [
+        docItem.id,
+        docItem.documentNumber || "",
+        `"${(docItem.title || "").replace(/"/g, '""')}"`,
+        `"${(docItem.description || "").replace(/"/g, '""')}"`,
+        `"${(docItem.createdByName || "").replace(/"/g, '""')}"`,
+        docItem.createdBy || "",
+        dateStr,
+        docItem.status || ""
+      ];
+    });
+
+    // Create CSV content with correct UTF-8 BOM so Thai characters display correctly in Excel!
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+    
+    // Download triggers
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("id", "download-csv-link");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `outbound_documents_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Helper date rendering
   const renderTimestamp = (ts: any) => {
     if (!ts) return "Processing...";
@@ -228,6 +330,16 @@ export default function DocumentTable({ documents, auditLogs, isAdmin, onRefresh
               </button>
             </div>
           </div>
+
+          {isAdmin && (
+            <button
+              onClick={handleDownloadCSV}
+              className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-650 hover:from-emerald-700 hover:to-teal-750 text-white text-[11px] font-black rounded-xl shadow-sm hover:shadow-emerald-250 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Download Outbound (.csv)
+            </button>
+          )}
 
         </div>
 
@@ -380,7 +492,7 @@ export default function DocumentTable({ documents, auditLogs, isAdmin, onRefresh
             
             {/* Modal Header */}
             <div className="flex items-start justify-between pb-4 border-b border-slate-100">
-              <div className="space-y-1">
+              <div className="space-y-1 flex-1 pr-4">
                 {selectedDoc.type === "outbound" ? (
                   <span className="px-2.5 py-0.5 bg-pink-100 text-pink-700 rounded-full font-mono font-bold text-[10px] inline-block tracking-wide">
                     {selectedDoc.documentNumber || "Pending Number"}
@@ -390,10 +502,25 @@ export default function DocumentTable({ documents, auditLogs, isAdmin, onRefresh
                     Inbound File Reference
                   </span>
                 )}
-                <h3 className="text-lg font-black text-slate-900">{selectedDoc.title}</h3>
+                {isEditing ? (
+                  <div className="w-full mt-2">
+                    <label className="block text-[10px] font-bold text-indigo-600 uppercase mb-1">Document Title (หัวข้อเอกสาร)</label>
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      className="w-full px-3 py-2 border border-indigo-250 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-100 bg-white"
+                    />
+                  </div>
+                ) : (
+                  <h3 className="text-lg font-black text-slate-900">{selectedDoc.title}</h3>
+                )}
               </div>
               <button
-                onClick={() => setSelectedDoc(null)}
+                onClick={() => {
+                  setSelectedDoc(null);
+                  setIsEditing(false);
+                }}
                 className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-lg transition-colors cursor-pointer text-xs font-bold font-mono"
               >
                 [Esc] Close
@@ -417,7 +544,18 @@ export default function DocumentTable({ documents, auditLogs, isAdmin, onRefresh
             </div>
 
             {/* Description Segment */}
-            {selectedDoc.description ? (
+            {isEditing ? (
+              <div className="space-y-1.5">
+                <span className="block text-[10px] text-indigo-600 font-extrabold uppercase tracking-wider">Internal Reference Note / รายละเอียดแฝงบันทึก (แก้ไขได้)</span>
+                <textarea
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-indigo-250 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-100 bg-white"
+                  placeholder="Insert additional descriptions..."
+                />
+              </div>
+            ) : selectedDoc.description ? (
               <div className="space-y-1.5">
                 <span className="block text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">Internal Reference Note / รายละเอียดแฝงบันทึก</span>
                 <p className="text-xs text-slate-600 bg-slate-50/50 p-3 rounded-xl border border-slate-100 leading-normal whitespace-pre-line">
@@ -426,6 +564,65 @@ export default function DocumentTable({ documents, auditLogs, isAdmin, onRefresh
               </div>
             ) : (
               <div className="text-xs text-slate-400 italic font-semibold font-sans">No reference notes registered under this document record.</div>
+            )}
+
+            {/* Error Display inside Modal */}
+            {modalError && (
+              <div className="p-3 bg-red-50 text-red-600 border border-red-100 text-xs rounded-xl flex items-start gap-2.5">
+                <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                <span>{modalError}</span>
+              </div>
+            )}
+
+            {/* Admin Action Bar */}
+            {isAdmin && (
+              <div className="flex flex-col sm:flex-row border-t border-slate-100 pt-4 items-center justify-between gap-3">
+                <div className="text-xs font-bold text-indigo-900 bg-indigo-50/50 p-2 px-3 rounded-lg border border-indigo-150">
+                  ⚡ Administrative Permissions Active (สิทธิ์ผู้ดูแลระบบ)
+                </div>
+                {!isEditing ? (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setIsEditing(true);
+                        setEditTitle(selectedDoc.title);
+                        setEditDescription(selectedDoc.description || "");
+                        setModalError("");
+                      }}
+                      className="px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 hover:text-indigo-800 text-[11px] font-extrabold rounded-xl transition-all cursor-pointer inline-flex items-center gap-1 active:scale-95 border border-indigo-100"
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                      Edit Details (แก้ไขเอกสาร)
+                    </button>
+                    <button
+                      onClick={handleDeleteDocument}
+                      className="px-3.5 py-1.5 bg-red-50 hover:bg-red-150 text-red-650 hover:text-red-700 text-[11px] font-extrabold rounded-xl transition-all cursor-pointer inline-flex items-center gap-1 active:scale-95 border border-red-100"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Delete Document (ลบถาวร)
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleSaveEdit}
+                      disabled={modalActionLoading}
+                      className="px-3.5 py-1.5 bg-gradient-to-r from-indigo-600 to-violet-650 hover:from-indigo-700 text-white text-[11px] font-extrabold rounded-xl transition-all cursor-pointer inline-flex items-center gap-1 active:scale-95 shadow-sm disabled:opacity-50"
+                    >
+                      {modalActionLoading ? "Saving Details..." : "Save Details (บันทึกข้อมูล)"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsEditing(false);
+                        setModalError("");
+                      }}
+                      className="px-3.5 py-1.5 bg-slate-105 hover:bg-slate-200 text-slate-600 text-[11px] font-extrabold rounded-xl transition-all cursor-pointer inline-flex items-center gap-1 active:scale-95 border border-slate-200"
+                    >
+                      Cancel (ยกเลิก)
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
 
             {/* ----------------------------------------------------

@@ -1,6 +1,6 @@
 {
-  "name": "BU Document Tracker",
-  "description": "An enterprise-grade document tracking portal for Bangkok University managing secure inbound registrations, outbound workflows, transaction-safe serializers, and real-time security indicators.",
+  "name": "ITI In/Out Bound Memo Tracker",
+  "description": "A high-performance document memo tracking portal for Bangkok University managing secure inbound registrations, outbound workflows, and administrative roles.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

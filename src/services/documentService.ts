@@ -224,3 +224,89 @@ export async function rejectDocument(docId: string, adminEmail: string, rejectRe
     handleFirestoreError(error, OperationType.WRITE, `documents/${docId}/reject`);
   }
 }
+
+/**
+ * Update document details (Admins only)
+ */
+export async function updateDocumentDetails(
+  docId: string, 
+  title: string, 
+  description: string, 
+  adminEmail: string
+): Promise<void> {
+  const docRef = doc(db, "documents", docId);
+  const logRef = doc(collection(db, "auditLogs"));
+
+  try {
+    await runTransaction(db, async (transaction) => {
+      const docSnap = await transaction.get(docRef);
+      if (!docSnap.exists()) {
+        throw new Error("Document not found.");
+      }
+
+      const docData = docSnap.data();
+
+      // Update document properties
+      transaction.update(docRef, {
+        title: title.trim(),
+        description: description.trim(),
+        updatedAt: serverTimestamp()
+      });
+
+      // Audit Log
+      transaction.set(logRef, {
+        id: logRef.id,
+        action: "edit_document",
+        documentId: docId,
+        actor: adminEmail,
+        timestamp: serverTimestamp(),
+        metadata: {
+          previousTitle: docData.title,
+          newTitle: title.trim(),
+          documentNumber: docData.documentNumber || ""
+        }
+      });
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `documents/${docId}/update`);
+    throw error;
+  }
+}
+
+/**
+ * Delete document completely (Admins only)
+ */
+export async function deleteDocument(docId: string, adminEmail: string): Promise<void> {
+  const docRef = doc(db, "documents", docId);
+  const logRef = doc(collection(db, "auditLogs"));
+
+  try {
+    await runTransaction(db, async (transaction) => {
+      const docSnap = await transaction.get(docRef);
+      if (!docSnap.exists()) {
+        throw new Error("Document not found.");
+      }
+
+      const docData = docSnap.data();
+
+      // Delete the document
+      transaction.delete(docRef);
+
+      // Audit Log
+      transaction.set(logRef, {
+        id: logRef.id,
+        action: "delete_document",
+        documentId: docId,
+        actor: adminEmail,
+        timestamp: serverTimestamp(),
+        metadata: {
+          deletedTitle: docData.title,
+          documentNumber: docData.documentNumber || ""
+        }
+      });
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `documents/${docId}/delete`);
+    throw error;
+  }
+}
