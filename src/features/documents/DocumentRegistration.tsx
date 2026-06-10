@@ -287,7 +287,11 @@ export default function DocumentRegistration({ onSuccess }: DocumentRegistration
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-3 bg-indigo-650 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-indigo-200 transition-all disabled:opacity-50 cursor-pointer flex items-center gap-2 active:scale-95"
+            className={`px-6 py-3 text-white rounded-xl text-xs font-extrabold shadow-lg transition-all disabled:opacity-50 cursor-pointer flex items-center gap-2 active:scale-[0.97] ${
+              type === "outbound"
+                ? "bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 shadow-pink-200/50"
+                : "bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 shadow-indigo-200/50"
+            }`}
           >
             {loading ? (
               <>
@@ -295,12 +299,12 @@ export default function DocumentRegistration({ onSuccess }: DocumentRegistration
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                Processing Transaction...
+                {type === "outbound" ? "กำลังบันทึกเอกสารส่งออก..." : "กำลังบันทึกเอกสารรับเข้า..."}
               </>
             ) : (
               <>
                 <PlaySquare className="w-4 h-4" />
-                File Document Record
+                {type === "outbound" ? "บันทึกเอกสารส่งออก (Save Outbound Memo)" : "บันทึกเอกสารรับเข้า (Save Inbound Memo)"}
               </>
             )}
           </button>
