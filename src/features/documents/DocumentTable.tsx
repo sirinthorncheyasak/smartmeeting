@@ -347,7 +347,9 @@ export default function DocumentTable({ documents, auditLogs, isAdmin, onRefresh
 
       {/* Grid List View Table */}
       <div className="bg-white/60 backdrop-blur-md border border-white/80 rounded-[2rem] shadow-xl overflow-hidden">
-        <div className="overflow-x-auto">
+        
+        {/* Desktop View Table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-100/50 text-slate-550 border-b border-white">
@@ -424,11 +426,11 @@ export default function DocumentTable({ documents, auditLogs, isAdmin, onRefresh
                     <td className="p-4">
                       {docItem.type === "inbound" ? (
                         <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-black inline-flex items-center gap-1 border border-indigo-100">
-                          <CheckCircle className="w-3 h-3 text-indigo-500" /> นำส่งแล้ว (Received)
+                          <CheckCircle className="w-3 h-3 text-indigo-505" /> นำส่งแล้ว (Received)
                         </span>
                       ) : (
                         <span className="px-2.5 py-1 bg-pink-50 text-pink-700 rounded-xl text-[10px] font-black inline-flex items-center gap-1 border border-pink-100">
-                          <CheckCircle className="w-3 h-3 text-pink-500" /> นำส่งสำเร็จ (Dispatched)
+                          <CheckCircle className="w-3 h-3 text-pink-505" /> นำส่งสำเร็จ (Dispatched)
                         </span>
                       )}
                     </td>
@@ -458,6 +460,101 @@ export default function DocumentTable({ documents, auditLogs, isAdmin, onRefresh
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile View Card List */}
+        <div className="block md:hidden p-4 space-y-4">
+          {paginatedDocs.length === 0 ? (
+            <div className="p-12 text-center text-xs text-slate-400 font-semibold italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+              No document records matching selection parameters have been registered.
+            </div>
+          ) : (
+            paginatedDocs.map((docItem) => (
+              <div 
+                key={docItem.id} 
+                className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm relative overflow-hidden transition-all hover:border-slate-205 focus-within:ring-2 focus-within:ring-indigo-100"
+              >
+                {/* Horizontal Category Pill Ribbon */}
+                <div className="flex items-center justify-between gap-2 border-b border-slate-55 pb-2.5 mb-3">
+                  {docItem.type === "outbound" ? (
+                    <span className="px-2 py-0.5 bg-pink-100 text-pink-700 rounded-full font-mono font-bold text-[10px] inline-block tracking-wide">
+                      {docItem.documentNumber || "Generating..."}
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full font-mono font-bold text-[10px] inline-block tracking-wide">
+                      IN-{docItem.id.slice(0, 5).toUpperCase()}
+                    </span>
+                  )}
+                  
+                  {docItem.type === "inbound" ? (
+                    <span className="px-2 py-0.5 bg-indigo-50 text-indigo-650 rounded-lg text-[9px] font-black inline-flex items-center gap-1 border border-indigo-100">
+                      <ArrowDownLeft className="w-2.5 h-2.5 text-indigo-500 animate-pulse" /> รับเข้า
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 bg-pink-50 text-pink-750 rounded-lg text-[9px] font-black inline-flex items-center gap-1 border border-pink-100">
+                      <ArrowUpRight className="w-2.5 h-2.5 text-pink-500 animate-pulse" /> ส่งออก
+                    </span>
+                  )}
+                </div>
+
+                {/* Primary Information */}
+                <div className="space-y-1">
+                  <h4 className="text-xs font-black text-slate-900 leading-snug">{docItem.title}</h4>
+                  {docItem.description && (
+                    <p className="text-[11px] text-slate-400 font-medium line-clamp-2 leading-relaxed">
+                      {docItem.description}
+                    </p>
+                  )}
+                </div>
+
+                {/* Sender Profile and Time Metadata */}
+                <div className="pt-3 mt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-[10px]">
+                  <div>
+                    <span className="text-slate-400 font-extrabold uppercase tracking-wider block text-[8px] mb-0.5">Registrant</span>
+                    <span className="font-bold text-slate-700 block truncate" title={docItem.createdBy}>
+                      {docItem.createdByName}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-extrabold uppercase tracking-wider block text-[8px] mb-0.5">Date Filed</span>
+                    <span className="font-semibold text-slate-500 block truncate">
+                      {renderTimestamp(docItem.createdAt)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Action Trigger Row */}
+                <div className="mt-4 pt-3 border-t border-slate-50 flex items-center justify-end">
+                  <button
+                    onClick={() => {
+                      setSelectedDoc(docItem);
+                      setShowRejectForm(false);
+                      setRejectionTextInput("");
+                      setModalError("");
+                    }}
+                    className={`w-full py-2 px-3 rounded-xl transition-all cursor-pointer text-[11px] font-bold inline-flex items-center justify-center gap-1.5 ${
+                      isAdmin 
+                        ? "bg-indigo-50 hover:bg-indigo-100 text-indigo-700"
+                        : "bg-slate-50 hover:bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {isAdmin ? (
+                      <>
+                        <Edit className="w-3.5 h-3.5" />
+                        <span>แก้ไข / จัดการ (Manage)</span>
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>ดูรายละเอียด (View)</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+              </div>
+            ))
+          )}
         </div>
 
         {/* Dynamic Pagination Controls */}

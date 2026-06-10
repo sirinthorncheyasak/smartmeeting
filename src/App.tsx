@@ -192,36 +192,39 @@ export default function App() {
       <main className="max-w-7xl w-full mx-auto px-4 md:px-6 mt-8 space-y-8 relative z-10">
         
         {/* Navigation Tabs Switcher */}
-        <div className="flex bg-slate-200/40 backdrop-blur-md p-1.5 rounded-2xl shadow-inner max-w-2xl border border-white/50">
+        <div className="flex overflow-x-auto no-scrollbar scroll-smooth bg-slate-200/40 backdrop-blur-md p-1.5 rounded-2xl shadow-inner max-w-full sm:max-w-2xl border border-white/50 gap-1 flex-nowrap shrink-0 snap-x">
           
           <button
             onClick={() => setActiveTab("documents")}
-            className={`flex-1 py-2.5 text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`flex-1 min-w-[90px] md:min-w-0 snap-start py-2 sm:py-2.5 text-[10px] sm:text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 ${
               activeTab === "documents" ? "bg-white text-indigo-755 shadow" : "text-slate-600 hover:text-indigo-650"
             }`}
           >
-            <FileText className="w-3.5 h-3.5" />
-            Document Ledger
+            <FileText className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="hidden sm:inline">Document Ledger</span>
+            <span className="sm:hidden">Ledger</span>
           </button>
 
           <button
             onClick={() => setActiveTab("register")}
-            className={`flex-1 py-2.5 text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`flex-1 min-w-[100px] md:min-w-0 snap-start py-2 sm:py-2.5 text-[10px] sm:text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 ${
               activeTab === "register" ? "bg-white text-indigo-755 shadow" : "text-slate-600 hover:text-indigo-650"
             }`}
           >
-            <FilePlus className="w-3.5 h-3.5" />
-            New Registration
+            <FilePlus className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="hidden sm:inline">New Registration</span>
+            <span className="sm:hidden">Register</span>
           </button>
 
           <button
             onClick={() => setActiveTab("dashboard")}
-            className={`flex-1 py-2.5 text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`flex-1 min-w-[90px] md:min-w-0 snap-start py-2 sm:py-2.5 text-[10px] sm:text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 ${
               activeTab === "dashboard" ? "bg-white text-indigo-755 shadow" : "text-slate-600 hover:text-indigo-650"
             }`}
           >
-            <LayoutDashboard className="w-3.5 h-3.5" />
-            Analytics Portal
+            <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="hidden sm:inline">Analytics Portal</span>
+            <span className="sm:hidden">Analytics</span>
           </button>
 
           {/* Audit Trail only visible to Admins under strict governance */}
@@ -229,22 +232,24 @@ export default function App() {
             <>
               <button
                 onClick={() => setActiveTab("auditLogs")}
-                className={`flex-1 py-2.5 text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                className={`flex-1 min-w-[95px] md:min-w-0 snap-start py-2 sm:py-2.5 text-[10px] sm:text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 ${
                   activeTab === "auditLogs" ? "bg-white text-indigo-755 shadow" : "text-slate-600 hover:text-indigo-650"
                 }`}
               >
-                <Workflow className="w-3.5 h-3.5" />
-                Security Logs
+                <Workflow className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="hidden sm:inline">Security Logs</span>
+                <span className="sm:hidden">Security</span>
               </button>
 
               <button
                 onClick={() => setActiveTab("manageAdmins")}
-                className={`flex-1 py-2.5 text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                className={`flex-1 min-w-[95px] md:min-w-0 snap-start py-2 sm:py-2.5 text-[10px] sm:text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 ${
                   activeTab === "manageAdmins" ? "bg-white text-indigo-755 shadow" : "text-slate-600 hover:text-indigo-650"
                 }`}
               >
-                <ShieldCheck className="w-3.5 h-3.5" />
-                Manage Admins
+                <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="hidden sm:inline">Manage Admins</span>
+                <span className="sm:hidden">Admins</span>
               </button>
             </>
           )}
