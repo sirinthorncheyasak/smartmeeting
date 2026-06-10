@@ -1,84 +1,80 @@
 {
   "entities": {
-    "Booking": {
-      "title": "Booking",
-      "description": "Represents a meeting room booking",
+    "Document": {
+      "title": "Document",
+      "description": "Represents an inbound or outbound tracking document",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
+        "type": { "type": "string", "enum": ["inbound", "outbound"] },
         "title": { "type": "string" },
-        "roomId": { "type": "string" },
-        "roomName": { "type": "string" },
-        "startTime": { "type": "string", "format": "date-time" },
-        "endTime": { "type": "string", "format": "date-time" },
-        "status": { "type": "string", "enum": ["pending", "approved", "cancelled"] },
-        "requesterEmail": { "type": "string" },
-        "requesterName": { "type": "string" },
-        "requesterDepartment": { "type": "string" },
-        "requesterPhone": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" },
+        "description": { "type": "string" },
+        "documentNumber": { "type": "string" },
+        "direction": { "type": "string", "enum": ["in", "out"] },
+        "status": { "type": "string", "enum": ["draft", "pending", "approved", "rejected"] },
+        "rejectionReason": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "createdByName": { "type": "string" },
         "approvedBy": { "type": "string" },
-        "approvedAt": { "type": "string", "format": "date-time" },
-        "cancelledReason": { "type": "string" }
+        "approvedAt": { "type": "object", "description": "Timestamp" },
+        "createdAt": { "type": "object", "description": "Timestamp" },
+        "updatedAt": { "type": "object", "description": "Timestamp" }
       },
-      "required": ["id", "title", "roomId", "roomName", "startTime", "endTime", "status", "requesterEmail", "requesterName", "requesterDepartment", "requesterPhone", "createdAt", "updatedAt"]
+      "required": ["id", "type", "title", "direction", "status", "createdBy", "createdByName", "createdAt", "updatedAt"]
     },
-    "Room": {
-      "title": "Room",
-      "description": "Represents a meeting room inside the university",
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "System audit logs tracking actions made on documents",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "name": { "type": "string" },
-        "capacity": { "type": "number" },
-        "location": { "type": "string" },
-        "active": { "type": "boolean" }
+        "action": { "type": "string" },
+        "documentId": { "type": "string" },
+        "actor": { "type": "string" },
+        "timestamp": { "type": "object", "description": "Timestamp" },
+        "metadata": { "type": "object" }
       },
-      "required": ["id", "name", "capacity", "location", "active"]
+      "required": ["id", "action", "documentId", "actor", "timestamp"]
     },
-    "Staff": {
-      "title": "Staff",
-      "description": "Represents a university staff member",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "employeeId": { "type": "string" },
-        "fullName": { "type": "string" },
-        "department": { "type": "string" },
-        "email": { "type": "string" },
-        "phone": { "type": "string" },
-        "extension": { "type": "string" },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "employeeId", "fullName", "department", "email", "phone", "extension", "updatedAt"]
-    },
-    "Admin": {
-      "title": "Admin",
-      "description": "Represents an admin",
-      "type": "object",
-      "properties": {
-        "email": { "type": "string" }
-      },
-      "required": ["email"]
-    }
+		"Counter": {
+			"title": "Counter",
+			"description": "Saves sequential monthly running numbers securely",
+			"type": "object",
+			"properties": {
+				"id": { "type": "string" },
+				"lastRunningNumber": { "type": "number" },
+				"updatedAt": { "type": "object" }
+			},
+			"required": ["id", "lastRunningNumber", "updatedAt"]
+		},
+		"Admin": {
+			"title": "Admin",
+			"description": "Represents an authorized administrator email",
+			"type": "object",
+			"properties": {
+				"email": { "type": "string" },
+				"assignedBy": { "type": "string" },
+				"assignedAt": { "type": "object", "description": "Timestamp" }
+			},
+			"required": ["email", "assignedBy", "assignedAt"]
+		}
   },
   "firestore": {
-    "/bookings/{bookingId}": {
-      "schema": "Booking",
-      "description": "Collection of meeting bookings"
-    },
-    "/rooms/{roomId}": {
-      "schema": "Room",
-      "description": "Collection of available meeting rooms"
-    },
-    "/staff/{staffId}": {
-      "schema": "Staff",
-      "description": "Collection of authorized staff details indexed by staffId"
-    },
-    "/admins/{adminId}": {
+    "/admins/{email}": {
       "schema": "Admin",
-      "description": "Collection of admin emails"
+      "description": "Registered and authorized admin users"
+    },
+    "/documents/{documentId}": {
+      "schema": "Document",
+      "description": "Collection of documents with tracking statistics"
+    },
+    "/auditLogs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Audit trails for actions executed in the system"
+    },
+    "/counters/{counterId}": {
+      "schema": "Counter",
+      "description": "Locking document counter sequence by month"
     }
   }
 }

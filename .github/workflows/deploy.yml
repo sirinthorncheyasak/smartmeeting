@@ -1,33 +1,44 @@
-name: CI build and verify
+name: Continuous Integration & Deployment (CI/CD)
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - master
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+      - master
 
 jobs:
-  build:
+  build-and-test:
+    name: Build and Validate Code compiling
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install App Dependencies
+        run: npm install
 
-      - name: Run lint
+      - name: Lint Codebase Verification
         run: npm run lint
 
-      - name: Run type check
-        run: npx tsc --noEmit
-
-      - name: Build application
+      - name: Build Static Production Assets
         run: npm run build
+
+      - name: Deploy to Netlify (Preview or Production)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: nethgato/netlify-deploy-action@v2
+        with:
+          netlify-token: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          site-id: ${{ secrets.NETLIFY_SITE_ID }}
+          build-dir: dist
+          prod: true

@@ -1,50 +1,41 @@
-export type BookingStatus = 'pending' | 'approved' | 'cancelled';
+export type DocumentType = 'inbound' | 'outbound';
+export type DocumentDirection = 'in' | 'out';
+export type DocumentStatus = 'draft' | 'pending' | 'approved' | 'rejected';
 
-export interface Booking {
+export interface Document {
   id: string;
+  type: DocumentType;
   title: string;
-  roomId: string;
-  roomName: string;
-  startTime: string; // ISO string for TS, stored as String/Timestamp in Firestore
-  endTime: string;   // ISO string for TS, stored as String/Timestamp in Firestore
-  status: BookingStatus;
-  requesterEmail: string;
-  requesterName: string;
-  requesterDepartment: string;
-  requesterPhone: string;
-  createdAt: string;
-  updatedAt: string;
-  approvedBy?: string;
-  approvedAt?: string;
-  cancelledReason?: string;
+  description?: string;
+  documentNumber?: string; // e.g. ทน.6906001 (outbound only)
+  direction: DocumentDirection;
+  status: DocumentStatus;
+  rejectionReason?: string; // Outbound rejection reason
+  createdBy: string; // email
+  createdByName: string;
+  approvedBy?: string; // admin email
+  approvedAt?: any; // Timestamp or date string
+  createdAt: any; // Timestamp or date string
+  updatedAt: any; // Timestamp or date string
 }
 
-export interface Room {
+export interface AuditLog {
   id: string;
+  action: string;
+  documentId: string;
+  actor: string; // email or UID
+  timestamp: any;
+  metadata?: Record<string, any>;
+}
+
+export interface Counter {
+  id: string; // Format: YYYYMM
+  lastRunningNumber: number;
+  updatedAt: any;
+}
+
+export interface UserProfile {
+  email: string;
   name: string;
-  capacity: number;
-  location: string;
-  active: boolean;
-}
-
-export interface Staff {
-  id: string;
-  employeeId: string;
-  fullName: string;
-  department: string;
-  email: string;
-  phone: string;
-  extension: string;
-  updatedAt: string;
-}
-
-export interface Admin {
-  email: string;
-}
-
-export interface BookingFilters {
-  academicYear: string;
-  month: string; // "all" or "01".."12"
-  search: string;
-  status: string; // "all", "pending", "approved", "cancelled"
+  isAdmin: boolean;
 }

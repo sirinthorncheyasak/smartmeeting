@@ -1,6 +1,6 @@
 {
-  "name": "Smart Meeting Room Booking System",
-  "description": "A premium meeting room booking dashboard for university faculty with real-time conflict-detection, approval workflow, and Google Workspace integration.",
+  "name": "BU Document Tracker",
+  "description": "An enterprise-grade document tracking portal for Bangkok University managing secure inbound registrations, outbound workflows, transaction-safe serializers, and real-time security indicators.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

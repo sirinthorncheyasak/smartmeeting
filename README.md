@@ -1,106 +1,62 @@
-# BU Meeting Room Reservation System
+# BU Document Tracking System (Inbound / Outbound) — Production Grade
 
-A production-ready, highly polished Bangkok University (BU) Meeting Room Reservation System built with **React**, **Vite**, **TypeScript**, **Tailwind CSS**, and **Firebase (Firestore & Authentication)**. It features real-time synchronization, advanced reservation scheduling, an administrative analytics dashboard, a faculty directory management tool, and integration endpoints with Google Workspace (Apps Script).
-
-## 🚀 Key Features
-
-- **Bangkok University OAuth**: Secure Google Sign-In strictly enforced for domains ending in `@bu.ac.th` and pre-authorized administrative UIDs.
-- **Real-Time Booking Scheduling**: Bidirectional real-time database watchers for rooms, booking slots, and active statuses using Firestore snapshot listeners.
-- **Modern KPI & Analytics Dashboard**: Fully functional interactive Recharts charts (Area Trends, Pie Distribution, Bar Usage analysis) sliced dynamically by Academic Cycle constraints (Aug - Jul) and specific calendar months.
-- **Faculty Directory Upload**: Bulk CSV drag-and-drop parse utility or manual directory editor for white-listing and managing qualified staff.
-- **Google Workspace integration**: Configurable Apps Script endpoints (`/send-booking-email`, `/create-calendar-event`) to automate invitations and outbound emails.
-- **Zero-Trust Security Rules**: Hardened ABAC (Attribute-Based Access Control) Firestore security rules to protect records and PII data from direct client scraping.
+A full-stack enterprise-grade web application for managing document intake (รับเข้า) and document dispatch (ส่งออก) within Bangkok University. Built of highly secure Attribute-Based Access Control (ABAC), concurrency-safe Firestore transactions, and high-fidelity real-time streams.
 
 ---
 
-## 🛠️ Stack Overview
+## 🧠 System Architecture
 
-- **Frontend Framework**: React 19 + TypeScript
-- **Bundler & Dev Server**: Vite 6
-- **Styling**: Tailwind CSS 4 with ultra-custom "Glassmorphism" panels
-- **Animations**: Motion (formerly Framer Motion)
-- **Database & Authentication**: Firebase Firestore + Firebase Auth
-- **Graphs & Charts**: Recharts + Lucide Icons
+- **Intake Flow (Inbound)**: Immediate cataloging and date filing (Classification: `inbound`, direction: `in`). Starts automatically in finalized archiving.
+- **Dispatch Flow (Outbound)**: Sequence starting as `pending` under administrative revision. A strict, serial running key is generated inside a concurrency-safe Firestore Transaction.
+- **Workflow timeline tracking**: Approvals and rejections are logged immutably with dynamic action metadata and author indicators.
+- **Secure list queries**: Users only query documents they own, whereas administrators (`kulachet.l@bu.ac.th`) query all submissions cleanly to avoid any authorization limits.
 
 ---
 
-## 🔧 Installation & Local Setup
+## 📤 Outbound Document Number Format
 
-### 1. Clone the repository and install dependencies
-```bash
-git clone <your-repository-url>
-cd bu-meeting-room-reservation
-npm install
-```
+### Formula:
+`ทน.YYMMXXX`
 
-### 2. Configure Environment Variables
-Create a `.env` file in the root directory based on `.env.example`:
+- `ทน.`: Fixed Thai prefix.
+- `YY`: Last 2 digits of the active Buddhist Year (พ.ศ.) (calculated as Western Year + 543).
+- `MM`: Pad-0 double-digit calendar month (e.g., `06` for June).
+- `XXX`: 3-digit padded running index (`001` to `999`), resetting atomically first day of every month.
+
+---
+
+## 🔐 Credentials & Environment Setup
+
+Configure these environment keys inside your Netlify, GitHub Actions, or local environment parameters:
+
 ```env
-VITE_FIREBASE_API_KEY="your-api-key"
-VITE_FIREBASE_AUTH_DOMAIN="your-project.firebaseapp.com"
-VITE_FIREBASE_PROJECT_ID="your-project"
-VITE_FIREBASE_STORAGE_BUCKET="your-project.firebasestorage.app"
-VITE_FIREBASE_MESSAGING_SENDER_ID="your-sender-id"
-VITE_FIREBASE_APP_ID="your-app-id"
-VITE_FIREBASE_FIRESTORE_DATABASE_ID="(default)"
-```
-
-### 3. Run Development Server
-```bash
-npm run dev
-```
-The application will start on `http://localhost:3000`.
-
----
-
-## 🏗️ Production Build and Verification
-
-Compile TypeScript and build optimized static assets for release:
-```bash
-npm run build
-```
-Verify types and structure cleanly:
-```bash
-npm run lint
+# Firebase Connection Parameters
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+VITE_FIREBASE_FIRESTORE_DATABASE_ID=default
 ```
 
 ---
 
-## ☁️ Continuous Deployment via Netlify
+## 🚀 Deployment Instructions
 
-The project includes a production-ready `netlify.toml` which configures Netlify to handle single-page application (SPA) routing and client asset resolution.
+### 📦 Deploying to Netlify
+1. Log in to the **Netlify Console**.
+2. Select **Add new site** -> **Import from existing project (GitHub)**.
+3. Configure these Parameters:
+   - **Build Command**: `npm run build`
+   - **Publish Directory**: `dist`
+4. Add the Firebase variables listed above in the **Environment variables** section of Netlify.
+5. Tap **Deploy Site**. The custom redirect rule inside `netlify.toml` automatically manages clean SPA browser routes.
 
-### 📋 Netlify Environment Variables Configuration
-Declare the following environment variables in your **Netlify Project Console** under **Site configuration > Environment variables**:
+### 🔥 Deploying to Firebase Hosting
+1. Install firebase-tools: `npm install -g firebase-tools`
+2. Log in using authorized terminal credentials: `firebase login`
+3. Associate local configurations: `firebase deploy --only hosting`
 
-| Variable Key | Description |
-|---|---|
-| `VITE_FIREBASE_API_KEY` | Your Firebase project Web API Key |
-| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase Authentication domain (e.g., `proj.firebaseapp.com`) |
-| `VITE_FIREBASE_PROJECT_ID` | Your Firebase Project ID |
-| `VITE_FIREBASE_STORAGE_BUCKET` | Your Storage bucket (e.g., `proj.firebasestorage.app`) |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Sender ID for Firebase Messages |
-| `VITE_FIREBASE_APP_ID` | Firebase Web Application ID |
-| `VITE_FIREBASE_FIRESTORE_DATABASE_ID` | (Optional) Named Firestore database ID (defaults to empty/`(default)`) |
-
----
-
-## 🔥 Firebase Firestore & Configuration
-
-The repository contains declarative files to bundle deployment artifacts:
-- `firebase.json`: Declares routing maps for rules and schemas.
-- `firestore.rules`: Enterprise-level Zero-Trust security rules validating data types, matching specific email patterns, and locking completed reservation states.
-- `firestore.indexes.json`: Schema definitions for custom query indexing.
-
-Deploy rules via the Firebase CLI:
-```bash
-npm install -g firebase-tools
-firebase login
-firebase deploy --only firestore
-```
-
----
-
-## 👥 Authors & License
-Designed for authorized academic structures inside Bangkok University.
-All rights reserved © 2026.
+### 💻 GitHub Actions (CI/CD)
+The workflow file is fully pre-configured under `.github/workflows/deploy.yml`. Provide `NETLIFY_AUTH_TOKEN` and `NETLIFY_SITE_ID` inside GitHub repository secrets to trigger continuous staging and deployment on push events!
